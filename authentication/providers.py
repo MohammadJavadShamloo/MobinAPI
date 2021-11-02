@@ -9,11 +9,20 @@ class Provider:
     @classmethod
     @abc.abstractmethod
     def is_belong_to_provider(cls, phone_number):
+        """
+        :param phone_number: given phone_number
+        :return: returns True if phone_number belongs to Provider
+        """
         pass
 
     @classmethod
     @abc.abstractmethod
     def send_sms(cls, phone_number, code):
+        """
+        :param phone_number: given phone_number
+        :param code: given code for sending to phone_number
+        :return: code that has been generated
+        """
         pass
 
 
