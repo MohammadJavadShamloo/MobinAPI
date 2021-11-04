@@ -2,9 +2,10 @@ import time
 
 from rest_framework import status
 from rest_framework.response import Response
+
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('middlelogger')
 
 
 class CheckUserAgentMiddleware:
@@ -35,6 +36,10 @@ class LoggerMiddleware:
     def __call__(self, request):
         req_time = time.time()
         response = self.get_response(request)
-        rep_time = time.time() - req_time
-        logger.info(f'{response.status_code} - {request.path} - {rep_time * 10 ** 6}')
+        resp_time = time.time() - req_time
+        logger.info('Middleware Log : ', extra={
+            'path': str(request.path),
+            'status_code': str(response.status_code),
+            'run_time': round(resp_time * 10 ** 3, 3)
+        })
         return response

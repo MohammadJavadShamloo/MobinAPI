@@ -1,6 +1,8 @@
+import json
 import random
 import secrets
 
+import requests
 from django.contrib.auth import get_user_model, authenticate
 from django.core.cache import cache
 from rest_framework import status
@@ -90,7 +92,7 @@ class LoginView(APIView):
                 return Response(data, status=status.HTTP_200_OK)
             else:
                 data[error_key_prefix] = serializer.errors
-                return Response(data, status=status.HTTP_404_NOT_FOUND)
+                return Response(data, status=status.HTTP_403_FORBIDDEN)
         else:
             data[error_key_prefix] = serializer.errors
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -135,7 +137,7 @@ class SendOtpView(APIView):
         return Response(data, status=status.HTTP_403_FORBIDDEN)
 
 
-class ValidateOtpView(AuthenticatedUsersMixin, APIView,):
+class ValidateOtpView(AuthenticatedUsersMixin, APIView, ):
     """
     Validate OTP View
     Validate OTP using GET method.
@@ -249,3 +251,16 @@ class ForgotPassView(APIView):
                 return Response(data, status=status.HTTP_403_FORBIDDEN)
         data[error_key_prefix] = serializer.errors
         return Response(data, status.HTTP_400_BAD_REQUEST)
+
+
+class GetWorldTimeView(AuthenticatedUsersMixin, APIView):
+
+    def get(self, request):
+        data = {}
+        time_data = json.loads(requests.get("https://worldtimeapi.org/api/timezone/Asia/Tehran").text)
+        if time_data:
+            data['day_of_week'] = time_data['day_of_week']
+            data['timezone'] = time_data['timezone']
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)

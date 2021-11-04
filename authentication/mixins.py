@@ -14,14 +14,14 @@ class AuthenticatedUsersMixin:
         if token:
             self.token = token[0]
             self.user = self.token.user
+            self.check_user_agent(request)
+            return super(AuthenticatedUsersMixin, self).dispatch(request, *args, **kwargs)
         else:
-            response = Response(status=status.HTTP_404_NOT_FOUND)
+            response = Response(status=status.HTTP_403_FORBIDDEN)
             response.accepted_renderer = JSONRenderer()
             response.accepted_media_type = "application/json"
             response.renderer_context = {}
             return response
-        self.check_user_agent(request)
-        return super(AuthenticatedUsersMixin, self).dispatch(request, *args, **kwargs)
 
     def check_user_agent(self, request):
         if self.token.user_agent != request.META.get('HTTP_USER_AGENT'):

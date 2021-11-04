@@ -15,6 +15,8 @@ from pathlib import Path
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import json_log_formatter
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
@@ -151,18 +153,35 @@ CACHES = {
 
 LOGGING = {
     'version': 1,
-    'disable_existing_logger': False,
-    'formatters': {
-        'simple': {
-            'format': '{message}',
-            'style': '{',
+    'disable_existing_loggers': False,
+    'loggers': {
+        'middlelogger': {
+            'level': 'INFO',
+            'handlers': ['console', 'file', ],
         },
     },
     'handlers': {
         'console': {
-            'class': 'logging.StreamHandler',
             'level': 'INFO',
-            'formatter': 'simple'
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'json',
+            'filename': 'logs.json',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{msg} {path} {status_code} {run_time}',
+            'style': '{'
+        },
+        'json': {
+            '()': 'json_log_formatter.JSONFormatter',
+            'format': '{msg} {path} {status_code} {run_time}',
+            'style': '{'
         },
     },
 }

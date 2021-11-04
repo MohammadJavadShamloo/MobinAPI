@@ -11,4 +11,5 @@ urlpatterns = [
     path('forgot-pass/', views.ForgotPassView.as_view(), name='forgot_password'),
     path('list-tokens/', views.ListTokensView.as_view(), name='list_tokens'),
     path('kill-tokens/', views.KillTokenView.as_view(), name='kill_tokens'),
+    path('get-time/', views.GetWorldTimeView.as_view(), name='get_time'),
 ]
