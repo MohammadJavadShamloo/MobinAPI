@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
-    'authentication.middlewares.CheckUserAgentMiddleware',
+    # 'authentication.middlewares.CheckUserAgentMiddleware',
     'authentication.middlewares.LoggerMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -67,8 +67,7 @@ ROOT_URLCONF = 'MobinAPI.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [str(BASE_DIR.joinpath('Templates')), ]
-        ,
+        'DIRS': [str(BASE_DIR.joinpath('Templates')), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -88,8 +87,12 @@ WSGI_APPLICATION = 'MobinAPI.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
 
@@ -140,10 +143,13 @@ REST_FRAMEWORK = {
     ]
 }
 
+REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
+REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379',
+        'LOCATION': "redis://{}:{}/1".format(REDIS_HOST, REDIS_PORT),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient'
         },
@@ -151,37 +157,37 @@ CACHES = {
     }
 }
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'loggers': {
-        'middlelogger': {
-            'level': 'INFO',
-            'handlers': ['console', 'file', ],
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'formatter': 'json',
-            'filename': 'logs.json',
-        },
-    },
-    'formatters': {
-        'verbose': {
-            'format': '{msg} {path} {status_code} {run_time}',
-            'style': '{'
-        },
-        'json': {
-            '()': 'json_log_formatter.JSONFormatter',
-            'format': '{msg} {path} {status_code} {run_time}',
-            'style': '{'
-        },
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'loggers': {
+#         'middlelogger': {
+#             'level': 'INFO',
+#             'handlers': ['console', 'file', ],
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'INFO',
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'verbose',
+#         },
+#         'file': {
+#             'level': 'INFO',
+#             'class': 'logging.FileHandler',
+#             'formatter': 'json',
+#             'filename': 'logs.json',
+#         },
+#     },
+#     'formatters': {
+#         'verbose': {
+#             'format': '{msg} {path} {status_code} {run_time}',
+#             'style': '{'
+#         },
+#         'json': {
+#             '()': 'json_log_formatter.JSONFormatter',
+#             'format': '{msg} {path} {status_code} {run_time}',
+#             'style': '{'
+#         },
+#     },
+# }

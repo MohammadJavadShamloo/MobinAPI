@@ -19,7 +19,7 @@ class CheckUserAgentMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if 'HTTP_USER_AGENT' in request.META:
+        if 'HTTP_USER_AGENT' in request.META['headers'] or 'HTTP_USER_AGENT' in request.META:
             return response
         return Response('Request Should be Contain USERAGENT header', status=status.HTTP_400_BAD_REQUEST)
 

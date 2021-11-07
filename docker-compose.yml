@@ -1,0 +1,35 @@
+version: '3.3'
+
+services:
+  web:
+    build: .
+    command: python /Mobin/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/Mobin
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - db
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data/redis
+    environment:
+      - REDIS_HOST:redis
+
+  db:
+    image: postgres:latest
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres:
+  redis:

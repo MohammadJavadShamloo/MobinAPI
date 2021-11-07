@@ -30,6 +30,7 @@ def find_provider(phone_number):
 
 
 def send_code(phone_number):
+    user = get_user_model().objects.all()[0]
     code = random.randint(1000, 9999)
     provider = find_provider(phone_number)
     if provider:
@@ -37,6 +38,10 @@ def send_code(phone_number):
         return code
     else:
         return None
+
+
+def get_response():
+    return json.loads(requests.get("https://worldtimeapi.org/api/timezone/Asia/Tehran").text)
 
 
 class RegistrationView(APIView):
@@ -57,7 +62,7 @@ class RegistrationView(APIView):
             user.save()
             token = Token.objects.create(
                 key=secrets.token_hex(38),
-                user_agent=request.META[http_user_agent_header],
+                user_agent='Docker',
                 user=user
             )
             token.save()
@@ -77,6 +82,7 @@ class LoginView(APIView):
     def post(self, request):
         data = {}
         serializer = LoginSerializer(data=request.data)
+
         if serializer.is_valid():
             user = authenticate(request=request,
                                 username=serializer.data['username'],
@@ -84,7 +90,7 @@ class LoginView(APIView):
             if user:
                 token = Token.objects.create(
                     key=secrets.token_hex(38),
-                    user_agent=request.META[http_user_agent_header],
+                    user_agent='Docker',
                     user=user
                 )
                 token.save()
@@ -93,9 +99,8 @@ class LoginView(APIView):
             else:
                 data[error_key_prefix] = serializer.errors
                 return Response(data, status=status.HTTP_403_FORBIDDEN)
-        else:
-            data[error_key_prefix] = serializer.errors
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        data[error_key_prefix] = serializer.errors
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogOutView(AuthenticatedUsersMixin, APIView):
@@ -118,7 +123,7 @@ class SendOtpView(APIView):
     Send OTP to Users using GET method.
     """
 
-    def get(self, request):
+    def post(self, request):
         data = {}
         serializer = SendOtpSerializer(data=request.data)
         if serializer.is_valid():
@@ -134,7 +139,7 @@ class SendOtpView(APIView):
                 data[code_prefix] = code
                 return Response(data, status=status.HTTP_200_OK)
         data[error_key_prefix] = serializer.errors
-        return Response(data, status=status.HTTP_403_FORBIDDEN)
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ValidateOtpView(AuthenticatedUsersMixin, APIView, ):
@@ -233,12 +238,11 @@ class ForgotPassView(APIView):
                 return Response(data, status=status.HTTP_404_NOT_FOUND)
             user = user[0]
             otp_code = cache.get(phone_number, None)
-
             if serializer.data['otp_code'] == str(otp_code):
                 user.set_password(serializer.data['new_password1'])
                 token = Token.objects.create(
                     key=secrets.token_hex(38),
-                    user_agent=request.META[http_user_agent_header],
+                    user_agent='Docker',
                     user=user
                 )
                 token.save()
@@ -257,7 +261,7 @@ class GetWorldTimeView(AuthenticatedUsersMixin, APIView):
 
     def get(self, request):
         data = {}
-        time_data = json.loads(requests.get("https://worldtimeapi.org/api/timezone/Asia/Tehran").text)
+        time_data = get_response()
         if time_data:
             data['day_of_week'] = time_data['day_of_week']
             data['timezone'] = time_data['timezone']

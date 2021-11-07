@@ -10,10 +10,10 @@ class RegistrationSerializer(serializers.Serializer):
     Registration Serializer
     Fields : (username, phone_number, password1, password2)
     """
-    username = serializers.CharField(max_length=150, validators=(UnicodeUsernameValidator,))
-    phone_number = serializers.CharField(validators=(IranPhoneNumberValidator,))
-    password1 = serializers.CharField(validators=(PasswordValidator,))
-    password2 = serializers.CharField(validators=(PasswordValidator,))
+    username = serializers.CharField(max_length=150, validators=(UnicodeUsernameValidator(),))
+    phone_number = serializers.CharField(validators=(IranPhoneNumberValidator(),))
+    password1 = serializers.CharField(validators=(PasswordValidator(),))
+    password2 = serializers.CharField(validators=(PasswordValidator(),))
 
     def validate(self, data):
         """
@@ -22,7 +22,7 @@ class RegistrationSerializer(serializers.Serializer):
         """
         if data['password1'] != data['password2']:
             raise serializers.ValidationError('Password Not Same!')
-        return data
+        return super(RegistrationSerializer, self).validate(data)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -30,8 +30,8 @@ class LoginSerializer(serializers.Serializer):
     Login Serializer
     Fields : (username, password)
     """
-    username = serializers.CharField(max_length=150, validators=(UnicodeUsernameValidator,))
-    password = serializers.CharField(validators=(PasswordValidator,))
+    username = serializers.CharField(max_length=150, validators=(UnicodeUsernameValidator(),))
+    password = serializers.CharField(validators=(PasswordValidator(),))
 
 
 class SendOtpSerializer(serializers.Serializer):
@@ -39,7 +39,7 @@ class SendOtpSerializer(serializers.Serializer):
     Send OTP Serializer
     Fields : (phone_number,)
     """
-    phone_number = serializers.CharField(validators=(IranPhoneNumberValidator,))
+    phone_number = serializers.CharField(validators=(IranPhoneNumberValidator(),))
 
 
 class ValidateOtpSerializer(serializers.Serializer):
@@ -55,18 +55,19 @@ class ChangePassSerializer(serializers.Serializer):
     Change Password Serializer
     Fields : (old_pass, new_password1, new_password2,)
     """
-    old_pass = serializers.CharField(validators=(PasswordValidator,))
-    new_password1 = serializers.CharField(validators=(PasswordValidator,))
-    new_password2 = serializers.CharField(validators=(PasswordValidator,))
+    old_pass = serializers.CharField(validators=(PasswordValidator(),))
+    new_password1 = serializers.CharField(validators=(PasswordValidator(),))
+    new_password2 = serializers.CharField(validators=(PasswordValidator(),))
 
     def validate(self, data):
         """
         :param data: input data's
         :return: return data if two passwords are same
         """
+
         if data['new_password1'] != data['new_password2']:
             raise serializers.ValidationError('Password Not Same!')
-        return data
+        return super(ChangePassSerializer, self).validate(data)
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -74,6 +75,7 @@ class TokenSerializer(serializers.ModelSerializer):
     Token Serializer
     Fields : Key Field of Token Model
     """
+
     class Meta:
         model = Token
         fields = ('key',)
@@ -93,9 +95,9 @@ class ForgotPassSerializer(serializers.Serializer):
     Fields : (otp_code, phone_number, new_password1, new_password2,)
     """
     otp_code = serializers.CharField(max_length=4)
-    phone_number = serializers.CharField(validators=(IranPhoneNumberValidator,))
-    new_password1 = serializers.CharField(validators=(PasswordValidator,))
-    new_password2 = serializers.CharField(validators=(PasswordValidator,))
+    phone_number = serializers.CharField(validators=(IranPhoneNumberValidator(),))
+    new_password1 = serializers.CharField(validators=(PasswordValidator(),))
+    new_password2 = serializers.CharField(validators=(PasswordValidator(),))
 
     def validate(self, data):
         """

@@ -9,7 +9,8 @@ from authentication.models import Token
 class AuthenticatedUsersMixin:
 
     def dispatch(self, request, *args, **kwargs):
-        token_in_header = request.headers.get('USER-TOKEN')
+        token_in_header = request.headers.get('USER-TOKEN') if request.headers.get('USER-TOKEN') else \
+            request.META['headers']['USER-TOKEN']
         token = Token.objects.filter(key__exact=token_in_header)
         if token:
             self.token = token[0]
@@ -24,6 +25,8 @@ class AuthenticatedUsersMixin:
             return response
 
     def check_user_agent(self, request):
-        if self.token.user_agent != request.META.get('HTTP_USER_AGENT'):
-            self.token.user_agent = request.META.get('HTTP_USER_AGENT')
+        if self.token.user_agent != request.META.get('HTTP_USER_AGENT') or self.token.user_agent != request.META.get(
+                'headers').get('HTTP_USER_AGENT'):
+            self.token.user_agent = request.META.get('HTTP_USER_AGENT') if request.META.get(
+                'HTTP_USER_AGENT') else self.token.user_agent != request.META.get('headers').get('HTTP_USER_AGENT')
             self.token.save()
