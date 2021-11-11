@@ -5,6 +5,7 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /Mobin
 
+COPY redis-6.2.6 /Mobin/
 COPY requirements.txt /Mobin/
 
 RUN pip install -r requirements.txt

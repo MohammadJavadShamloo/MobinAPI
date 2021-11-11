@@ -46,6 +46,9 @@ INSTALLED_APPS = [
 
     # 3rd parties
     'rest_framework',
+    'drf_yasg',
+    'easy_thumbnails',
+    'crispy_forms',
 ]
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -67,7 +70,7 @@ ROOT_URLCONF = 'MobinAPI.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [str(BASE_DIR.joinpath('Templates')), ],
+        'DIRS': [str(BASE_DIR.joinpath('templates')), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -143,51 +146,56 @@ REST_FRAMEWORK = {
     ]
 }
 
-REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
-REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
-
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': "redis://{}:{}/1".format(REDIS_HOST, REDIS_PORT),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient'
         },
+        'LOCATION': 'redis://redis:6379',
         'KEY_PREFIX': 'default'
     }
 }
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'loggers': {
-#         'middlelogger': {
-#             'level': 'INFO',
-#             'handlers': ['console', 'file', ],
-#         },
-#     },
-#     'handlers': {
-#         'console': {
-#             'level': 'INFO',
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'verbose',
-#         },
-#         'file': {
-#             'level': 'INFO',
-#             'class': 'logging.FileHandler',
-#             'formatter': 'json',
-#             'filename': 'logs.json',
-#         },
-#     },
-#     'formatters': {
-#         'verbose': {
-#             'format': '{msg} {path} {status_code} {run_time}',
-#             'style': '{'
-#         },
-#         'json': {
-#             '()': 'json_log_formatter.JSONFormatter',
-#             'format': '{msg} {path} {status_code} {run_time}',
-#             'style': '{'
-#         },
-#     },
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'loggers': {
+        'middlelogger': {
+            'level': 'INFO',
+            'handlers': ['console', 'file', ],
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'json',
+            'filename': 'logs.json',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{msg} {path} {status_code} {run_time}',
+            'style': '{'
+        },
+        'json': {
+            '()': 'json_log_formatter.JSONFormatter',
+            'format': '{msg} {path} {status_code} {run_time}',
+            'style': '{'
+        },
+    },
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR.joinpath('media/')
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/admin/login/'

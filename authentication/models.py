@@ -10,3 +10,8 @@ class Token(models.Model):
     user = models.ForeignKey(get_user_model(),
                              related_name='tokens',
                              on_delete=models.CASCADE)
+
+
+class ArchPic(models.Model):
+    title = models.CharField(max_length=200)
+    picture = models.ImageField(upload_to='architecture/%Y/%m/%d/', blank=True, null=True)

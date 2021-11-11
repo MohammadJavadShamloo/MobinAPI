@@ -8,17 +8,33 @@ from django.core.cache import cache
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_yasg.utils import swagger_auto_schema
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render, redirect
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import PermissionRequiredMixin,LoginRequiredMixin
+from django.views.generic.base import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from .mixins import AuthenticatedUsersMixin
-from .models import Token
+from .models import Token, ArchPic
 from .providers import Provider
 from .serializers import RegistrationSerializer, LoginSerializer, SendOtpSerializer, ValidateOtpSerializer, \
-    ChangePassSerializer, KillTokenSerializer, ForgotPassSerializer
+    ChangePassSerializer, KillTokenSerializer, ForgotPassSerializer, TokenSerializer, GetTimeSerializer, CodeSerializer
 
 token_key_prefix = 'Token-Key'
 error_key_prefix = 'Error'
 code_prefix = 'Otp-Code'
 http_user_agent_header = 'HTTP_USER_AGENT'
+
+status_codes = {
+    200: "Success",
+    400: "Bad request",
+    404: "Not found",
+    403: "Forbidden",
+}
 
 
 def find_provider(phone_number):
@@ -30,7 +46,6 @@ def find_provider(phone_number):
 
 
 def send_code(phone_number):
-    user = get_user_model().objects.all()[0]
     code = random.randint(1000, 9999)
     provider = find_provider(phone_number)
     if provider:
@@ -50,6 +65,13 @@ class RegistrationView(APIView):
     Registering Users using POST method.
     """
 
+    @swagger_auto_schema(
+        query_serializer=RegistrationSerializer,
+        responses={
+            200: TokenSerializer(),
+            404: status_codes[404],
+        },
+    )
     def post(self, request):
         data = {}
         serializer = RegistrationSerializer(data=request.data)
@@ -79,6 +101,14 @@ class LoginView(APIView):
     Login Users using POST method.
     """
 
+    @swagger_auto_schema(
+        query_serializer=LoginSerializer(),
+        responses={
+            200: TokenSerializer(),
+            403: status_codes[403],
+            400: status_codes[400]
+        },
+    )
     def post(self, request):
         data = {}
         serializer = LoginSerializer(data=request.data)
@@ -109,6 +139,11 @@ class LogOutView(AuthenticatedUsersMixin, APIView):
     Log Out Users using DELETE method.
     """
 
+    @swagger_auto_schema(
+        responses={
+            200: status_codes[200],
+        },
+    )
     def delete(self, request):
         data = {}
         token = self.token
@@ -123,6 +158,14 @@ class SendOtpView(APIView):
     Send OTP to Users using GET method.
     """
 
+    @swagger_auto_schema(
+        query_serializer=SendOtpSerializer(),
+        responses={"password1": "MohaJav1380@@",
+                   200: CodeSerializer(),
+                   400: status_codes[400],
+                   404: status_codes[404]
+                   },
+    )
     def post(self, request):
         data = {}
         serializer = SendOtpSerializer(data=request.data)
@@ -148,6 +191,14 @@ class ValidateOtpView(AuthenticatedUsersMixin, APIView, ):
     Validate OTP using GET method.
     """
 
+    @swagger_auto_schema(
+        query_serializer=ValidateOtpSerializer(),
+        responses={
+            200: status_codes[200],
+            403: status_codes[403],
+            400: status_codes[400]
+        },
+    )
     def get(self, request):
         data = {}
         serializer = ValidateOtpSerializer(data=request.data)
@@ -171,6 +222,13 @@ class ChangePassView(AuthenticatedUsersMixin, APIView):
     Changing Password of Users using PATCH method.
     """
 
+    @swagger_auto_schema(
+        query_serializer=ChangePassSerializer(),
+        responses={
+            200: TokenSerializer(),
+            400: status_codes[400]
+        },
+    )
     def patch(self, request):
         data = {}
         serializer = ChangePassSerializer(data=request.data)
@@ -194,6 +252,11 @@ class ListTokensView(AuthenticatedUsersMixin, APIView, ):
     Listing All Tokens of Users using GET method.
     """
 
+    @swagger_auto_schema(
+        responses={
+            200: TokenSerializer(many=True),
+        },
+    )
     def patch(self, request):
         data = {}
         data.update({token.key: token.user_agent for token in self.user.tokens.all()})
@@ -206,6 +269,13 @@ class KillTokenView(AuthenticatedUsersMixin, APIView, ):
     Killing Selected Tokens of Users using PATCH method.
     """
 
+    @swagger_auto_schema(
+        request_body=TokenSerializer(many=True),
+        responses={
+            200: status_codes[200],
+            400: status_codes[400]
+        },
+    )
     def patch(self, request):
         data = {}
         serializer = KillTokenSerializer(data=request.data)
@@ -228,6 +298,14 @@ class ForgotPassView(APIView):
     Change Forgotten Password of Users using PATCH method.
     """
 
+    @swagger_auto_schema(
+        query_serializer=ForgotPassSerializer(),
+        responses={
+            200: TokenSerializer(),
+            403: status_codes[403],
+            400: status_codes[400]
+        },
+    )
     def patch(self, request):
         data = {}
         serializer = ForgotPassSerializer(data=request.data)
@@ -258,7 +336,10 @@ class ForgotPassView(APIView):
 
 
 class GetWorldTimeView(AuthenticatedUsersMixin, APIView):
-
+    @swagger_auto_schema(responses={
+        200: GetTimeSerializer(),
+        400: status_codes[400]
+    })
     def get(self, request):
         data = {}
         time_data = get_response()
@@ -268,3 +349,39 @@ class GetWorldTimeView(AuthenticatedUsersMixin, APIView):
             return Response(data, status=status.HTTP_200_OK)
         else:
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ShowArchPicView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        picture = ArchPic.objects.last()
+        deleted_picture = ArchPic.objects.first().delete() if ArchPic.objects.count() > 1 else None
+        return render(request,
+                      'admin/utils/archPicPage.html',
+                      {'picture': picture})
+
+
+class DeleteArchPicView(LoginRequiredMixin, DeleteView):
+    model = ArchPic
+    success_url = reverse_lazy('admin:index')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class UpdateArchPicView(LoginRequiredMixin, UpdateView):
+    model = ArchPic
+    success_url = reverse_lazy('admin:index')
+    fields = [
+        'picture',
+        'title',
+    ]
+    template_name = 'admin/utils/archUpdateCreate.html'
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateArchPicView(LoginRequiredMixin, CreateView):
+    model = ArchPic
+    success_url = reverse_lazy('admin:index')
+    fields = [
+        'picture',
+        'title',
+    ]
+    template_name = 'admin/utils/archUpdateCreate.html'

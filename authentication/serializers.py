@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from .models import Token
 from .validators import IranPhoneNumberValidator, PasswordValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class RegistrationSerializer(serializers.Serializer):
@@ -107,3 +108,20 @@ class ForgotPassSerializer(serializers.Serializer):
         if data['new_password1'] != data['new_password2']:
             raise serializers.ValidationError('Password Not Same!')
         return data
+
+
+class GetTimeSerializer(serializers.Serializer):
+    """
+    Get Time Serializer
+    Fields : (Day Of Week, Timezone, )
+    """
+    day_of_week = serializers.IntegerField(validators=[MaxValueValidator(7), MinValueValidator(1)])
+    timezone = serializers.CharField(max_length=50)
+
+
+class CodeSerializer(serializers.Serializer):
+    """
+    Code Serializer
+    Fields : (Code, )
+    """
+    code = serializers.IntegerField(validators=[MaxValueValidator(9999), MinValueValidator(1000 )])
